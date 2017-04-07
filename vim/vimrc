@@ -1,0 +1,195 @@
+""""""""""""""""""""""
+"vim-plug configuration
+""""""""""""""""""""""
+"see https://github.com/junegunn/vim-plug
+call plug#begin('~/.vim/plugged')
+
+" Colorscheme Solarized
+Plug 'altercation/vim-colors-solarized'
+" Status bar
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+" Easy accessing files
+Plug 'scrooloose/nerdtree'
+" Basic vim configuration file
+Plug 'tpope/vim-sensible'
+" LaTeX
+Plug 'lervag/vimtex'
+" Git
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-fugitive'
+" Plugin for easy commenting blocks of code
+Plug 'scrooloose/nerdcommenter'
+" Plugin for smart autocompletion
+" NOTE THAT THIS PLUGIN ALSO INCLUDES EXTERNAL COMPONENTS
+" If a language is not working check if you should recompile it with added
+" support for the specific language
+Plug 'Valloric/YouCompleteMe'
+" Plugin for syntax checking
+Plug 'vim-syntastic/syntastic'
+" Plugin for PEP8 python indentation
+Plug 'Vimjas/vim-python-pep8-indent'
+
+" Add plugins to &runtimepath
+call plug#end()
+""""""""""""""""""""""
+
+""""""""""""""""""""""
+"General configuration
+""""""""""""""""""""""
+syntax on
+filetype plugin indent on
+
+"Search highlighting
+"To disable it inside vim run :nohlsearch
+set hlsearch
+
+"Easy search and replace of last search
+nnoremap <Leader>s :%s///g<Left><Left>
+
+"Line wrapping
+set textwidth=79
+set colorcolumn=80 "Highlights the collumn where break happens
+set columns=92 "This accounts for collumns occupied by line numbering etc
+"Tab identation
+"http://vim.wikia.com/wiki/Indent_with_tabs,_align_with_spaces
+set noet ci pi sts=0 sw=4 ts=4
+
+" See https://github.com/altercation/vim-colors-solarized
+colorscheme solarized
+set background=dark
+
+" Search for selected text, forwards or backwards.
+" See http://vim.wikia.com/wiki/Search_for_visually_selected_text
+vnoremap <silent> * :<C-U>
+			\let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+			\gvy/<C-R><C-R>=substitute(
+			\escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+			\gV:call setreg('"', old_reg, old_regtype)<CR>
+vnoremap <silent> # :<C-U>
+			\let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+			\gvy?<C-R><C-R>=substitute(
+			\escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+			\gV:call setreg('"', old_reg, old_regtype)<CR>
+
+" Set relative numbering
+" See http://jeffkreeftmeijer.com/2012/relative-line-numbers-in-vim-for-super-fast-movement/
+set relativenumber
+set number
+""""""""""""""""""""""
+
+""""""""""""""""""""""
+" YouCompleteMe Configuration
+""""""""""""""""""""""
+let g:ycm_autoclose_preview_window_after_completion=1
+" Jump to definition
+" https://blog.dbrgn.ch/2013/5/27/using-jedi-with-ymc/
+nnoremap <leader>g :YcmCompleter GoTo<CR>
+" Open goto into new tab
+let g:ycm_goto_buffer_command='new-tab'
+" Options for latex below, taken
+" :h vimtex-complete-youcompleteme
+if !exists('g:ycm_semantic_triggers')
+	let g:ycm_semantic_triggers = {}
+endif
+let g:ycm_semantic_triggers.tex = [
+			\ 're!\\[A-Za-z]*cite[A-Za-z]*(\[[^]]*\]){0,2}{[^}]*',
+			\ 're!\\[A-Za-z]*ref({[^}]*|range{([^,{}]*(}{)?))',
+			\ 're!\\hyperref\[[^]]*',
+			\ 're!\\includegraphics\*?(\[[^]]*\]){0,2}{[^}]*',
+			\ 're!\\(include(only)?|input){[^}]*',
+			\ 're!\\\a*(gls|Gls|GLS)(pl)?\a*(\s*\[[^]]*\]){0,2}\s*\{[^}]*',
+			\ 're!\\includepdf(\s*\[[^]]*\])?\s*\{[^}]*',
+			\ 're!\\includestandalone(\s*\[[^]]*\])?\s*\{[^}]*',
+			\ ]
+""""""""""""""""""""""
+
+""""""""""""""""""""""
+" vim-airline configuration
+""""""""""""""""""""""
+" Set proper encoding to show icons correctly
+" see https://github.com/vim-airline/vim-airline/issues/142
+" As advised in the link above, I installed a powerline fonts
+" I grabbed it for here https://github.com/powerline/fonts
+" See info about the font I chose in https://github.com/andreberg/Meslo-Font
+set encoding=utf-8
+let g:airline_powerline_fonts = 1
+set guifont=Meslo\ LG\ M\ for\ Powerline
+
+" List whitespaces
+" See http://stackoverflow.com/questions/32588604/vim-airline-what-is-trailing1
+set list          " Display unprintable characters f12 - switches
+set listchars=tab:•\ ,trail:•,extends:»,precedes:« " Unprintable chars mapping
+""""""""""""""""""""""
+
+""""""""""""""""""""""
+" vimtex configuration
+""""""""""""""""""""""
+" Configure vimtex to use Skim as pdf viewer. See
+" Code copied by vimtex's documentation
+let g:vimtex_view_general_viewer = '/Applications/Skim.app/Contents/SharedSupport/displayline'
+let g:vimtex_view_general_options = '-r @line @pdf @tex'
+" This adds a callback hook that updates Skim after compilation
+let g:vimtex_latexmk_callback_hooks = ['UpdateSkim']
+function! UpdateSkim(status)
+	if !a:status | return | endif
+
+	let l:out = b:vimtex.out()
+	let l:tex = expand('%:p')
+	let l:cmd = [g:vimtex_view_general_viewer, '-r']
+	if !empty(system('pgrep Skim'))
+		call extend(l:cmd, ['-g'])
+	endif
+	if has('nvim')
+		call jobstart(l:cmd + [line('.'), l:out, l:tex])
+	elseif has('job')
+		call job_start(l:cmd + [line('.'), l:out, l:tex])
+	else
+		call system(join(l:cmd + [line('.'), shellescape(l:out), shellescape(l:tex)], ' '))
+	endif
+endfunction
+
+"Spell check for tex files
+autocmd BufNewFile,BufRead *.tex set spell
+
+" Tex add underscore, dash and colon in isk for tex files
+" See https://github.com/lervag/vimtex/issues/323
+au FileType tex setlocal iskeyword+=:
+au FileType tex setlocal iskeyword+=_
+au FileType tex setlocal iskeyword+=-
+
+" Formatting for latex files
+" Make tabs smaller - useful when you are inside lots of environments
+au FileType tex setlocal sw=3 ts=3
+" See https://github.com/lervag/vimtex/blob/master/test/vader/format.vader
+" for the next two lines
+au FileType tex setlocal nojoinspaces
+let g:vimtex_format_enabled = 1
+" See https://github.com/lervag/vimtex/issues/613
+let g:vimtex_indent_on_ampersands = 0
+""""""""""""""""""""""
+
+""""""""""""""""""""""
+" syntastic configuration
+""""""""""""""""""""""
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+"Set which checker to use for python
+"Maybe you add change it to pylint in the future?
+"I found pylint way too extreme for now
+let g:syntastic_python_checkers = ['flake8']
+"Disable syntastic on tex files - too extreme
+let g:syntastic_mode_map = {
+    \ "mode": "passive",
+    \ "passive_filetypes": ["tex"] }
+"Map \x to check syntax of the file
+nnoremap <Leader>x :SyntasticCheck<CR>
+"Map \z to clear syntax checking of the file
+nnoremap <Leader>z :SyntasticReset<CR>
+""""""""""""""""""""""

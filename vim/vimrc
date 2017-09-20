@@ -18,6 +18,7 @@ Plug 'lervag/vimtex'
 " Git
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rhubarb'
 " Plugin for easy commenting blocks of code
 Plug 'scrooloose/nerdcommenter'
 " Plugin for smart autocompletion
@@ -76,6 +77,19 @@ vnoremap <silent> # :<C-U>
 " See http://jeffkreeftmeijer.com/2012/relative-line-numbers-in-vim-for-super-fast-movement/
 set relativenumber
 set number
+
+" Soft-wrap motions
+" See http://vimcasts.org/episodes/soft-wrapping-text/
+vmap <D-j> gj
+vmap <D-k> gk
+vmap <D-4> g$
+vmap <D-6> g^
+vmap <D-0> g^
+nmap <D-j> gj
+nmap <D-k> gk
+nmap <D-4> g$
+nmap <D-6> g^
+nmap <D-0> g^
 """"""""""""""""""""""
 
 """"""""""""""""""""""
@@ -168,14 +182,23 @@ au FileType tex setlocal iskeyword+=_
 au FileType tex setlocal iskeyword+=-
 
 " Formatting for latex files
+" Disable auto line breaking
+au Filetype tex setlocal tw=0
+au Filetype tex setlocal colorcolumn=0
+" See http://vim.wikia.com/wiki/Word_wrap_without_line_breaks
+au Filetype tex setlocal wrap
+au Filetype tex setlocal linebreak
+au Filetype tex setlocal nolist  " list disables linebreak
 " Make tabs smaller - useful when you are inside lots of environments
-au FileType tex setlocal sw=3 ts=3
+au FileType tex setlocal sw=3 ts=3 sts=3 expandtab
 " See https://github.com/lervag/vimtex/blob/master/test/vader/format.vader
 " for the next two lines
 au FileType tex setlocal nojoinspaces
 let g:vimtex_format_enabled = 1
 " See https://github.com/lervag/vimtex/issues/613
 let g:vimtex_indent_on_ampersands = 0
+" Disable all warnings. Might be better to refine it in the future
+let g:vimtex_quickfix_latexlog = {'default' : 0}
 """"""""""""""""""""""
 
 """"""""""""""""""""""

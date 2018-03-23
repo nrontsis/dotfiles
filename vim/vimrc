@@ -190,7 +190,7 @@ au Filetype tex setlocal wrap
 au Filetype tex setlocal linebreak
 au Filetype tex setlocal nolist  " list disables linebreak
 " Make tabs smaller - useful when you are inside lots of environments
-au FileType tex setlocal sw=3 ts=3 sts=3 expandtab
+au FileType tex setlocal sw=2 ts=2 sts=2 expandtab
 " See https://github.com/lervag/vimtex/blob/master/test/vader/format.vader
 " for the next two lines
 au FileType tex setlocal nojoinspaces
